@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
 export default function FeaturedProducts() {
-  const featured = PRODUCTS.slice(0, 4);
+  const featured = PRODUCTS.filter(p => p.stockStatus !== "Preorder").slice(0, 8);
 
   return (
     <section className="py-24">
