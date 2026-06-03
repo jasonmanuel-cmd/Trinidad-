@@ -59,9 +59,15 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <Link href="/account" className="p-2 text-muted-foreground hover:text-primary transition-colors">
-            <User className="w-6 h-6" />
-          </Link>
+          {vipMember.isVIP ? (
+            <Link href="/account" className="p-2 text-primary hover:opacity-80 transition-opacity" title="VIP Account">
+              <Crown className="w-6 h-6" />
+            </Link>
+          ) : (
+            <Link href="/account" className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Account">
+              <User className="w-6 h-6" />
+            </Link>
+          )}
           <Link href="/cart" className="p-2 relative text-muted-foreground hover:text-primary transition-colors">
             <ShoppingCart className="w-6 h-6" />
             {itemCount > 0 && (
