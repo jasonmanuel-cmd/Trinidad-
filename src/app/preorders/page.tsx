@@ -91,7 +91,7 @@ export default function PreordersPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-12">
+        <div className={`container mx-auto px-4 py-12 ${Object.keys(cart).length > 0 ? "md:pb-0 pb-32" : ""}`}>
           <div className="max-w-6xl mx-auto space-y-12">
             {/* Header */}
             <div className="space-y-6 text-center">
