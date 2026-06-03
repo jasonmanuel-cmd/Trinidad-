@@ -8,6 +8,7 @@ import { useVIPStore } from "@/store/vipStore";
 import { formatCurrency } from "@/lib/utils";
 import { ShieldCheck, Truck, CreditCard, AlertCircle, Crown, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { VIP_FREE_PREROLL, VIP_GIFT_BAGS } from "@/data/mockProducts";
 
 export default function CheckoutPage() {
   const { items, total, clearCart, addItem } = useCartStore();
@@ -15,6 +16,24 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditApplied, setCreditApplied] = useState(0);
+  const [perksAdded, setPerksAdded] = useState(false);
+
+  // Auto-add VIP perks on mount
+  useEffect(() => {
+    if (vipMember.isVIP && !perksAdded) {
+      // Add free pre-roll
+      addItem(VIP_FREE_PREROLL);
+
+      // Add monthly gift bag if eligible
+      if (hasMonthlyGiftBag()) {
+        const randomGiftBag = VIP_GIFT_BAGS[Math.floor(Math.random() * VIP_GIFT_BAGS.length)];
+        addItem(randomGiftBag);
+        claimMonthlyGiftBag();
+      }
+
+      setPerksAdded(true);
+    }
+  }, [vipMember.isVIP, perksAdded, addItem, hasMonthlyGiftBag, claimMonthlyGiftBag]);
 
   // Calculate subtotal
   const subtotal = total;
@@ -195,8 +214,15 @@ export default function CheckoutPage() {
               <div className="space-y-4 max-h-60 overflow-y-auto pr-2 no-scrollbar">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{item.quantity}x {item.name}</span>
-                    <span className="font-medium">{formatCurrency(item.price * item.quantity)}</span>
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      {item.quantity}x {item.name}
+                      {item.price === 0 && (
+                        <Gift className="w-3 h-3 text-accent" />
+                      )}
+                    </span>
+                    <span className={item.price === 0 ? "font-bold text-accent" : "font-medium"}>
+                      {item.price === 0 ? "FREE" : formatCurrency(item.price * item.quantity)}
+                    </span>
                   </div>
                 ))}
               </div>
