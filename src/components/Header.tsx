@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Menu, X, User } from "lucide-react";
+import { ShoppingCart, Menu, X, User, Crown } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/useCartStore";
+import { useVIPStore } from "@/store/vipStore";
+import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_LINKS = [
   { name: "Shop", href: "/shop" },
@@ -16,8 +18,8 @@ const NAV_LINKS = [
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const { items } = useCartStore();
+  const { vipMember } = useVIPStore();
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
@@ -34,6 +36,12 @@ export default function Header() {
           </div>
           <span className="font-bold text-xl tracking-tight hidden sm:block">
             TRINIDAD&apos;S <span className="text-primary font-black">TRIPPY TREATS</span>
+            {vipMember.isVIP && (
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-primary to-accent-purple rounded-full text-xs font-black text-white">
+                <Crown className="w-3 h-3" />
+                VIP
+              </span>
+            )}
           </span>
         </Link>
 
@@ -98,5 +106,3 @@ export default function Header() {
     </header>
   );
 }
-
-import { motion, AnimatePresence } from "framer-motion";

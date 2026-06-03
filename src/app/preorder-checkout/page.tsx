@@ -1,78 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCartStore } from "@/store/useCartStore";
-import { useVIPStore } from "@/store/vipStore";
 import { formatCurrency } from "@/lib/utils";
-import { ShieldCheck, Truck, CreditCard, AlertCircle, Crown, Gift } from "lucide-react";
+import { ShieldCheck, Truck, AlertCircle, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function CheckoutPage() {
-  const { items, total, clearCart, addItem } = useCartStore();
-  const { vipMember, useCredit, addDelivery, hasMonthlyGiftBag, claimMonthlyGiftBag } = useVIPStore();
+export default function PreorderCheckoutPage() {
+  const { items, total, clearCart } = useCartStore();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [creditApplied, setCreditApplied] = useState(0);
 
-  // Calculate subtotal
+  // Preorder specific: $100 minimum, free delivery
   const subtotal = total;
-
-  // Calculate delivery fee
-  const getDeliveryFee = () => {
-    if (vipMember.isVIP) {
-      return subtotal >= 20 ? 0 : 20 - subtotal; // Free if $20+, otherwise charge difference to reach $20
-    }
-    return subtotal >= 30 ? 0 : 10; // $10 if under $30, free if $30+
-  };
-
-  const deliveryFee = getDeliveryFee();
-  const subtotalWithDelivery = subtotal + deliveryFee;
-
-  // Apply VIP credit if available
-  useEffect(() => {
-    if (vipMember.isVIP && vipMember.creditBalance > 0) {
-      const canApply = Math.min(10, vipMember.creditBalance);
-      setCreditApplied(canApply);
-    }
-  }, [vipMember.isVIP, vipMember.creditBalance]);
-
-  const finalTotal = subtotalWithDelivery - creditApplied;
+  const deliveryFee = 0; // Always free for preorders
+  const finalTotal = subtotal + deliveryFee;
+  const meetsMinimum = subtotal >= 100;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!meetsMinimum) return;
+
     setIsSubmitting(true);
-
-    // Apply VIP credit if used
-    if (creditApplied > 0) {
-      useCredit(creditApplied);
-    }
-
-    // Track VIP delivery
-    if (vipMember.isVIP) {
-      addDelivery();
-    }
-
     // Simulate order processing
     setTimeout(() => {
       clearCart();
-      router.push("/order-confirmation");
+      router.push("/preorder-confirmation");
     }, 2000);
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 || !meetsMinimum) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <h1 className="text-2xl font-bold">Your cart is empty</h1>
+          <div className="text-center space-y-4 max-w-md">
+            <h1 className="text-2xl font-bold">Preorder Requirement Not Met</h1>
+            <p className="text-muted-foreground">Preorders require a minimum of $100. Your current order is {formatCurrency(total)}.</p>
             <button
-              onClick={() => router.push("/shop")}
+              onClick={() => router.push("/preorders")}
               className="px-6 py-2 bg-primary text-primary-foreground rounded-full font-bold"
             >
-              GO SHOPPING
+              BACK TO PREORDERS
             </button>
           </div>
         </main>
@@ -85,7 +56,7 @@ export default function CheckoutPage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-12">
-        <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-12">CHECKOUT</h1>
+        <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-12">PREORDER CHECKOUT</h1>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
@@ -100,21 +71,16 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* VIP Badge if applicable */}
-            {vipMember.isVIP && (
-              <div className="p-6 bg-gradient-to-r from-primary/10 to-accent-purple/10 border border-primary/30 rounded-2xl flex gap-4">
-                <Crown className="w-8 h-8 text-primary shrink-0" />
-                <div className="space-y-1">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    <Crown className="w-5 h-5" />
-                    VIP Member Benefits Applied
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Free delivery on orders $20+. Available credit: {formatCurrency(vipMember.creditBalance)}
-                  </p>
-                </div>
+            {/* Preorder Timeline */}
+            <div className="p-6 bg-accent/10 border border-accent/30 rounded-2xl flex gap-4">
+              <Clock className="w-8 h-8 text-accent shrink-0" />
+              <div className="space-y-1">
+                <h3 className="font-bold text-lg">Delivery Timeline</h3>
+                <p className="text-sm text-muted-foreground">
+                  Your preorder will be processed immediately and delivered within 2-3 business days. You'll receive a tracking number via SMS.
+                </p>
               </div>
-            )}
+            </div>
 
             {/* Delivery Details */}
             <div className="space-y-6">
@@ -148,42 +114,16 @@ export default function CheckoutPage() {
                 <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center font-bold text-sm">2</div>
                 <h2 className="text-2xl font-bold">PAYMENT METHOD</h2>
               </div>
-              <div className="space-y-4">
-                {vipMember.isVIP ? (
-                  <div className="relative flex items-center gap-4 p-6 bg-gradient-to-r from-primary/20 to-accent-purple/20 border border-primary rounded-2xl">
-                    <input type="radio" name="payment" value="cod" defaultChecked className="accent-primary" readOnly />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold">Cash on Delivery (VIP Only)</h4>
-                        <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded-full font-black uppercase">Exclusive</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">VIP members enjoy cash on delivery exclusively.</p>
-                    </div>
-                    <Truck className="w-6 h-6 text-primary" />
+              <div className="relative flex items-center gap-4 p-6 bg-card border border-primary rounded-2xl">
+                <input type="radio" name="payment" value="cod" defaultChecked className="accent-primary" readOnly />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold">Cash on Delivery</h4>
+                    <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-black uppercase">Preorder Only</span>
                   </div>
-                ) : (
-                  <label className="relative flex items-center gap-4 p-6 bg-card border border-primary rounded-2xl cursor-pointer">
-                    <input type="radio" name="payment" value="cod" defaultChecked className="accent-primary" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold">Cash on Delivery</h4>
-                        <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-black uppercase">Recommended</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">Pay with cash when your driver arrives.</p>
-                    </div>
-                    <Truck className="w-6 h-6 text-primary" />
-                  </label>
-                )}
-                {!vipMember.isVIP && (
-                  <label className="relative flex items-center gap-4 p-6 bg-card border border-border rounded-2xl cursor-pointer opacity-50 grayscale">
-                    <input type="radio" name="payment" value="cashapp" disabled className="accent-primary" />
-                    <div className="flex-1">
-                      <h4 className="font-bold">Cash App / Manual</h4>
-                      <p className="text-sm text-muted-foreground">Instructional payment flow (Coming Soon).</p>
-                    </div>
-                    <CreditCard className="w-6 h-6 text-muted-foreground" />
-                  </label>
-                )}
+                  <p className="text-sm text-muted-foreground">Pay with cash when your preorder arrives.</p>
+                </div>
+                <Truck className="w-6 h-6 text-primary" />
               </div>
             </div>
           </div>
@@ -191,7 +131,7 @@ export default function CheckoutPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             <div className="p-8 bg-card border border-border rounded-2xl space-y-6 sticky top-24">
-              <h2 className="text-2xl font-bold">YOUR ORDER</h2>
+              <h2 className="text-2xl font-bold">YOUR PREORDER</h2>
               <div className="space-y-4 max-h-60 overflow-y-auto pr-2 no-scrollbar">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
@@ -202,24 +142,15 @@ export default function CheckoutPage() {
               </div>
 
               <div className="pt-6 border-t border-border space-y-4">
-                {/* Breakdown */}
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
                     <span>{formatCurrency(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Delivery</span>
-                    <span className={deliveryFee === 0 ? "text-accent font-bold" : ""}>
-                      {deliveryFee === 0 ? "FREE" : formatCurrency(deliveryFee)}
-                    </span>
+                  <div className="flex justify-between text-accent font-bold">
+                    <span>Delivery</span>
+                    <span>FREE</span>
                   </div>
-                  {creditApplied > 0 && (
-                    <div className="flex justify-between text-accent">
-                      <span className="text-muted-foreground">VIP Credit</span>
-                      <span>-{formatCurrency(creditApplied)}</span>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex justify-between font-black text-xl pt-4 border-t border-border">
@@ -231,14 +162,14 @@ export default function CheckoutPage() {
                   disabled={isSubmitting}
                   className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  {isSubmitting ? "PROCESSING..." : "CONFIRM ORDER"}
+                  {isSubmitting ? "PROCESSING..." : "CONFIRM PREORDER"}
                 </button>
               </div>
 
               <div className="flex gap-2 text-[10px] text-muted-foreground bg-secondary/30 p-3 rounded-lg">
                 <AlertCircle className="w-4 h-4 shrink-0 text-primary" />
                 <p className="uppercase tracking-widest leading-relaxed">
-                  By clicking confirm, you agree to our 21+ age policy and ID verification requirements.
+                  By confirming, you agree to our 21+ policy, 2-3 day delivery timeline, and ID verification.
                 </p>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import VIPSection from "@/components/VIPSection";
 import HowItWorks from "@/components/HowItWorks";
 import FeaturedProducts from "@/components/FeaturedProducts";
 import TrustSection from "@/components/TrustSection";
@@ -12,6 +13,7 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
+        <VIPSection />
         <FeaturedProducts />
         <HowItWorks />
         <Newsletter />
