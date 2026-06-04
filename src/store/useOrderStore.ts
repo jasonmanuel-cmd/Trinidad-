@@ -31,6 +31,7 @@ export interface Order {
   status: OrderStatus;
   paymentMethod: PaymentMethod;
   deliveryInfo: DeliveryInfo;
+  customerEmail: string;
   isVIPOrder: boolean;
   vipCreditUsed: number;
   createdAt: Date;

@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { useOrderStore, OrderStatus, Order } from "@/store/useOrderStore";
 import { useVIPStore } from "@/store/vipStore";
 import { useAdminStore } from "@/store/useAdminStore";
+import { useNotificationStore } from "@/store/useNotificationStore";
 import { formatCurrency } from "@/lib/utils";
 import { exportOrdersToCSV, exportOrdersToJSON } from "@/lib/exportOrders";
 import {
@@ -59,6 +60,56 @@ export default function AdminPage() {
     if (selectedOrder.isVIPOrder && selectedOrder.vipCreditUsed > 0) {
       addCredit(selectedOrder.vipCreditUsed);
     }
+
+    // Trigger cancellation notification
+    const cancellationMessage = `Order ${selectedOrder.orderNumber} has been cancelled. ${
+      selectedOrder.vipCreditUsed > 0 ? `VIP credit of $${selectedOrder.vipCreditUsed} has been refunded.` : ""
+    }`;
+
+    useNotificationStore.getState().addNotification({
+      orderId: selectedOrder.id,
+      orderNumber: selectedOrder.orderNumber,
+      customerEmail: selectedOrder.customerEmail,
+      customerName: selectedOrder.deliveryInfo.name,
+      type: "cancelled",
+      message: cancellationMessage,
+      status: "pending",
+    });
+
+    // Send cancellation email
+    const notification = useNotificationStore.getState().notifications[0]; // Get the last added notification
+    
+    fetch("/api/notifications/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to: selectedOrder.customerEmail,
+        customerName: selectedOrder.deliveryInfo.name,
+        orderNumber: selectedOrder.orderNumber,
+        status: "cancelled",
+        message: cancellationMessage,
+        items: selectedOrder.items,
+        total: selectedOrder.total,
+      }),
+    })
+      .then((res) => {
+        if (res.ok && notification) {
+          useNotificationStore.getState().updateNotificationStatus(
+            notification.id,
+            "sent"
+          );
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to send cancellation email:", err);
+        if (notification) {
+          useNotificationStore.getState().updateNotificationStatus(
+            notification.id,
+            "failed",
+            err.message
+          );
+        }
+      });
 
     setSelectedOrder(null);
     setCancelModalOpen(false);
@@ -123,6 +174,67 @@ export default function AdminPage() {
 
   const handleStatusUpdate = (orderId: string, newStatus: OrderStatus) => {
     updateOrderStatus(orderId, newStatus);
+    
+    // Trigger notification
+    const order = orders.find((o) => o.id === orderId);
+    if (order) {
+      const statusMessages: Record<OrderStatus, string> = {
+        pending: `Your order ${order.orderNumber} has been received and is being prepared.`,
+        confirmed: `Great news! Order ${order.orderNumber} has been confirmed and will be dispatched soon.`,
+        dispatched: `Your order ${order.orderNumber} is on the way! Track your delivery on our website.`,
+        delivered: `Your order ${order.orderNumber} has been delivered. Thank you for your purchase!`,
+        cancelled: `Order ${order.orderNumber} has been cancelled.`,
+      };
+
+      useNotificationStore.getState().addNotification({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        customerEmail: order.customerEmail,
+        customerName: order.deliveryInfo.name,
+        type: newStatus,
+        message: statusMessages[newStatus],
+        status: "pending",
+      });
+
+      // Send email notification via API
+      const trackingUrl = `${window.location.origin}/track?orderId=${order.id}`;
+      const notification = useNotificationStore.getState().notifications[0]; // Get the last added notification
+      
+      fetch("/api/notifications/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: order.customerEmail,
+          customerName: order.deliveryInfo.name,
+          orderNumber: order.orderNumber,
+          status: newStatus,
+          message: statusMessages[newStatus],
+          estimatedDeliveryDate: order.estimatedDeliveryDate?.toLocaleDateString(),
+          trackingUrl,
+          items: order.items,
+          total: order.total,
+        }),
+      })
+        .then((res) => {
+          if (res.ok && notification) {
+            useNotificationStore.getState().updateNotificationStatus(
+              notification.id,
+              "sent"
+            );
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to send email:", err);
+          if (notification) {
+            useNotificationStore.getState().updateNotificationStatus(
+              notification.id,
+              "failed",
+              err.message
+            );
+          }
+        });
+    }
+
     setSelectedOrder((prev) => {
       if (prev && prev.id === orderId) {
         return { ...prev, status: newStatus };
@@ -143,6 +255,12 @@ export default function AdminPage() {
             <p className="text-muted-foreground">Manage orders and track customer deliveries</p>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={() => router.push("/admin/notifications")}
+              className="px-4 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors border border-accent/30 font-bold text-sm"
+            >
+              📧 NOTIFICATIONS
+            </button>
             <button
               onClick={() => router.push("/admin/analytics")}
               className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors border border-primary/30 font-bold text-sm"

@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "cashapp">(vipMember.isVIP ? "cod" : "cod");
   const [showCashAppModal, setShowCashAppModal] = useState(false);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -73,8 +74,16 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     // Validate form
-    if (!name || !phone || !address) {
+    if (!name || !email || !phone || !address) {
       alert("Please fill in all required fields");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address");
       setIsSubmitting(false);
       return;
     }
@@ -110,6 +119,7 @@ export default function CheckoutPage() {
         address,
         instructions: instructions || undefined,
       },
+      customerEmail: email,
       isVIPOrder: vipMember.isVIP,
       vipCreditUsed: creditApplied,
     });
@@ -199,6 +209,10 @@ export default function CheckoutPage() {
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Phone Number</label>
                   <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="(661) 000-0000" />
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Email Address</label>
+                  <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="your.email@example.com" />
                 </div>
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Delivery Address</label>
