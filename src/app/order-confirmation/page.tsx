@@ -1,24 +1,79 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { CheckCircle2, Truck, ShieldCheck, Mail, Gift } from "lucide-react";
+import { CheckCircle2, Truck, ShieldCheck, Mail, Gift, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useCartStore } from "@/store/useCartStore";
-import { useVIPStore } from "@/store/vipStore";
+import { useOrderStore, Order } from "@/store/useOrderStore";
 import { formatCurrency } from "@/lib/utils";
 
-export default function OrderConfirmationPage() {
-  const { items } = useCartStore();
-  const { vipMember } = useVIPStore();
-  const [orderNumber] = useState("TT-" + Math.floor(Math.random() * 90000 + 10000));
+export const dynamic = "force-dynamic";
 
-  // Calculate totals
-  const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const freeItems = items.filter(item => item.price === 0);
-  const paidItems = items.filter(item => item.price > 0);
-  const paidSubtotal = paidItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+export default function OrderConfirmationPage() {
+  const router = useRouter();
+  const { getOrder } = useOrderStore();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Extract orderId from URL on client-side only
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("orderId");
+      if (orderId) {
+        const foundOrder = getOrder(orderId);
+        setOrder(foundOrder || null);
+      }
+      setLoading(false);
+    }
+  }, [getOrder]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 flex items-center justify-center py-24">
+          <div className="animate-spin">
+            <CheckCircle2 className="w-12 h-12 text-primary" />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 flex items-center justify-center py-24">
+          <div className="max-w-2xl w-full px-4 text-center space-y-6">
+            <div className="flex justify-center">
+              <div className="w-24 h-24 rounded-full bg-red-500/20 flex items-center justify-center">
+                <AlertCircle className="w-12 h-12 text-red-500" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-4xl font-black">Order Not Found</h1>
+              <p className="text-muted-foreground">We couldn't find your order. Please try again.</p>
+            </div>
+            <Link
+              href="/shop"
+              className="inline-block py-3 px-8 bg-primary text-primary-foreground font-bold rounded-lg hover:opacity-90 transition-opacity"
+            >
+              BACK TO SHOP
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const freeItems = order.items.filter((item) => item.price === 0);
+  const paidItems = order.items.filter((item) => item.price > 0);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -34,12 +89,12 @@ export default function OrderConfirmationPage() {
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl font-black tracking-tight">ORDER CONFIRMED</h1>
             <p className="text-xl text-muted-foreground">
-              Thank you for choosing Trinidad&apos;s Trippy Treats. Your order <span className="text-foreground font-bold">{orderNumber}</span> has been received.
+              Thank you for choosing Trinidad&apos;s Trippy Treats. Your order <span className="text-foreground font-bold">{order.orderNumber}</span> has been received.
             </p>
           </div>
 
           {/* Order Items Summary */}
-          {items.length > 0 && (
+          {order.items.length > 0 && (
             <div className="p-6 bg-card border border-border rounded-2xl text-left space-y-4">
               <h3 className="font-bold text-lg">Order Items</h3>
               <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -72,9 +127,25 @@ export default function OrderConfirmationPage() {
                 </>
               )}
 
-              <div className="pt-4 border-t border-border flex justify-between font-bold text-lg">
-                <span>Total Paid</span>
-                <span>{formatCurrency(paidSubtotal + 0)}</span>
+              <div className="pt-4 border-t border-border space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span>{formatCurrency(order.subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Delivery Fee</span>
+                  <span>{order.deliveryFee === 0 ? "FREE" : formatCurrency(order.deliveryFee)}</span>
+                </div>
+                {order.vipCreditUsed > 0 && (
+                  <div className="flex justify-between text-sm text-accent">
+                    <span className="text-muted-foreground">VIP Credit Used</span>
+                    <span className="font-bold">-{formatCurrency(order.vipCreditUsed)}</span>
+                  </div>
+                )}
+                <div className="pt-2 border-t border-border flex justify-between font-bold text-lg">
+                  <span>Total</span>
+                  <span className="text-primary">{formatCurrency(order.total)}</span>
+                </div>
               </div>
             </div>
           )}
