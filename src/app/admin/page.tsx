@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useOrderStore, OrderStatus, Order } from "@/store/useOrderStore";
+import { useVIPStore } from "@/store/vipStore";
 import { useAdminStore } from "@/store/useAdminStore";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -20,17 +21,21 @@ import {
   ShoppingBag,
   Calendar,
   LogOut,
+  AlertTriangle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AdminPage() {
   const router = useRouter();
   const { isAuthenticated, logout } = useAdminStore();
-  const { orders, updateOrderStatus } = useOrderStore();
+  const { orders, updateOrderStatus, cancelOrder } = useOrderStore();
+  const { addCredit } = useVIPStore();
   const [mounted, setMounted] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | "all">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -42,6 +47,21 @@ export default function AdminPage() {
   if (!mounted || !isAuthenticated) {
     return null;
   }
+
+  const handleCancelOrder = () => {
+    if (!selectedOrder || !cancelReason.trim()) return;
+
+    cancelOrder(selectedOrder.id, cancelReason);
+
+    // Refund VIP credit if used
+    if (selectedOrder.isVIPOrder && selectedOrder.vipCreditUsed > 0) {
+      addCredit(selectedOrder.vipCreditUsed);
+    }
+
+    setSelectedOrder(null);
+    setCancelModalOpen(false);
+    setCancelReason("");
+  };
 
   const STATUS_COLORS: Record<OrderStatus, string> = {
     pending: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30",
@@ -429,6 +449,83 @@ export default function AdminPage() {
                     Mark as {nextStatuses[selectedOrder.status]}
                   </button>
                 )}
+
+                {/* Cancel Order Button */}
+                {selectedOrder.status !== "cancelled" && selectedOrder.status !== "delivered" && (
+                  <button
+                    onClick={() => setCancelModalOpen(true)}
+                    className="w-full py-3 bg-red-500/10 text-red-500 font-bold rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/30 flex items-center justify-center gap-2"
+                  >
+                    <AlertTriangle className="w-4 h-4" />
+                    CANCEL ORDER
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cancellation Modal */}
+      <AnimatePresence>
+        {cancelModalOpen && selectedOrder && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setCancelModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border rounded-2xl max-w-md w-full p-6 space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 text-red-500 mb-4">
+                <AlertTriangle className="w-6 h-6" />
+                <h3 className="text-lg font-bold">Cancel Order</h3>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                Order <span className="font-bold">{selectedOrder.orderNumber}</span>
+              </p>
+
+              <div>
+                <label className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2 block">
+                  Cancellation Reason
+                </label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Enter reason for cancellation..."
+                  className="w-full px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:border-primary resize-none"
+                  rows={3}
+                />
+              </div>
+
+              {selectedOrder.isVIPOrder && selectedOrder.vipCreditUsed > 0 && (
+                <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-sm">
+                  <p className="text-muted-foreground mb-1">VIP Credit will be refunded:</p>
+                  <p className="font-bold text-primary">{formatCurrency(selectedOrder.vipCreditUsed)}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setCancelModalOpen(false)}
+                  className="flex-1 py-2 bg-secondary text-foreground font-bold rounded-lg hover:bg-secondary/80 transition-colors"
+                >
+                  KEEP ORDER
+                </button>
+                <button
+                  onClick={handleCancelOrder}
+                  disabled={!cancelReason.trim()}
+                  className="flex-1 py-2 bg-red-500/20 text-red-500 font-bold rounded-lg hover:bg-red-500/30 transition-colors border border-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  CANCEL ORDER
+                </button>
               </div>
             </motion.div>
           </motion.div>

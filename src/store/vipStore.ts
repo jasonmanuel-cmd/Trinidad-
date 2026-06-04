@@ -15,6 +15,7 @@ interface VIPStore {
   cancelVIP: () => void;
   addDelivery: () => void;
   useCredit: (amount: number) => boolean; // returns true if successful
+  addCredit: (amount: number) => void; // refund credit
   getAvailableCredit: () => number;
   hasMonthlyGiftBag: () => boolean;
   claimMonthlyGiftBag: () => void;
@@ -58,23 +59,32 @@ export const useVIPStore = create<VIPStore>()(
         }));
       },
 
-      useCredit: (amount: number) => {
-        const state = get();
-        if (state.vipMember.creditBalance >= amount) {
-          set((state) => ({
-            vipMember: {
-              ...state.vipMember,
-              creditBalance: state.vipMember.creditBalance - amount,
-            },
-          }));
-          return true;
-        }
-        return false;
-      },
+       useCredit: (amount: number) => {
+         const state = get();
+         if (state.vipMember.creditBalance >= amount) {
+           set((state) => ({
+             vipMember: {
+               ...state.vipMember,
+               creditBalance: state.vipMember.creditBalance - amount,
+             },
+           }));
+           return true;
+         }
+         return false;
+       },
 
-      getAvailableCredit: () => {
-        return get().vipMember.creditBalance;
-      },
+       addCredit: (amount: number) => {
+         set((state) => ({
+           vipMember: {
+             ...state.vipMember,
+             creditBalance: state.vipMember.creditBalance + amount,
+           },
+         }));
+       },
+
+       getAvailableCredit: () => {
+         return get().vipMember.creditBalance;
+       },
 
       hasMonthlyGiftBag: () => {
         const state = get();

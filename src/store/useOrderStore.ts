@@ -36,12 +36,15 @@ export interface Order {
   createdAt: Date;
   estimatedDeliveryDate?: Date;
   notes?: string;
+  cancellationReason?: string;
+  cancelledAt?: Date;
 }
 
 interface OrderStore {
   orders: Order[];
   addOrder: (order: Omit<Order, "id" | "createdAt" | "orderNumber">) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  cancelOrder: (orderId: string, reason: string) => void;
   getOrder: (orderId: string) => Order | undefined;
   getOrdersByStatus: (status: OrderStatus) => Order[];
   getVIPOrders: () => Order[];
@@ -84,13 +87,28 @@ export const useOrderStore = create<OrderStore>()(
         return newOrder;
       },
 
-      updateOrderStatus: (orderId, status) => {
-        set((state) => ({
-          orders: state.orders.map((order) =>
-            order.id === orderId ? { ...order, status } : order
-          ),
-        }));
-      },
+       updateOrderStatus: (orderId, status) => {
+         set((state) => ({
+           orders: state.orders.map((order) =>
+             order.id === orderId ? { ...order, status } : order
+           ),
+         }));
+       },
+
+       cancelOrder: (orderId, reason) => {
+         set((state) => ({
+           orders: state.orders.map((order) =>
+             order.id === orderId
+               ? {
+                   ...order,
+                   status: "cancelled" as OrderStatus,
+                   cancellationReason: reason,
+                   cancelledAt: new Date(),
+                 }
+               : order
+           ),
+         }));
+       },
 
       getOrder: (orderId) => {
         return get().orders.find((order) => order.id === orderId);
