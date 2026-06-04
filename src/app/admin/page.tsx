@@ -113,23 +113,31 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-12 max-w-7xl">
-        <div className="mb-12 flex items-center justify-between">
+        <div className="mb-12 flex items-center justify-between flex-col md:flex-row gap-4">
           <div>
             <h1 className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-primary via-accent to-accent-purple bg-clip-text text-transparent">
               ADMIN DASHBOARD
             </h1>
             <p className="text-muted-foreground">Manage orders and track customer deliveries</p>
           </div>
-          <button
-            onClick={() => {
-              logout();
-              router.push("/admin-login");
-            }}
-            className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2 font-bold text-sm"
-          >
-            <LogOut className="w-4 h-4" />
-            LOGOUT
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push("/admin/analytics")}
+              className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors border border-primary/30 font-bold text-sm"
+            >
+              📊 ANALYTICS
+            </button>
+            <button
+              onClick={() => {
+                logout();
+                router.push("/admin-login");
+              }}
+              className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2 font-bold text-sm"
+            >
+              <LogOut className="w-4 h-4" />
+              LOGOUT
+            </button>
+          </div>
         </div>
 
         {/* Status Overview */}
