@@ -8,6 +8,7 @@ import { useOrderStore, OrderStatus, Order } from "@/store/useOrderStore";
 import { useVIPStore } from "@/store/vipStore";
 import { useAdminStore } from "@/store/useAdminStore";
 import { formatCurrency } from "@/lib/utils";
+import { exportOrdersToCSV, exportOrdersToJSON } from "@/lib/exportOrders";
 import {
   Crown,
   ChevronDown,
@@ -22,6 +23,7 @@ import {
   Calendar,
   LogOut,
   AlertTriangle,
+  Download,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -185,13 +187,13 @@ export default function AdminPage() {
         </div>
 
         {/* Sorting and Controls */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6 flex-col md:flex-row gap-4">
           <div>
             <p className="text-sm text-muted-foreground">
               Showing {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "newest" | "oldest")}
@@ -200,6 +202,24 @@ export default function AdminPage() {
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
             </select>
+            <button
+              onClick={() =>
+                exportOrdersToCSV(filteredOrders, `orders-${new Date().toISOString().split("T")[0]}.csv`)
+              }
+              className="px-4 py-2 bg-secondary/20 text-foreground border border-secondary rounded-lg hover:bg-secondary/30 transition-colors text-sm font-bold flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              onClick={() =>
+                exportOrdersToJSON(filteredOrders, `orders-${new Date().toISOString().split("T")[0]}.json`)
+              }
+              className="px-4 py-2 bg-accent/20 text-accent border border-accent rounded-lg hover:bg-accent/30 transition-colors text-sm font-bold flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              JSON
+            </button>
           </div>
         </div>
 
