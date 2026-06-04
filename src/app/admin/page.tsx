@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useOrderStore, OrderStatus, Order } from "@/store/useOrderStore";
+import { useAdminStore } from "@/store/useAdminStore";
 import { formatCurrency } from "@/lib/utils";
 import {
   Crown,
@@ -17,30 +19,45 @@ import {
   User,
   ShoppingBag,
   Calendar,
+  LogOut,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  pending: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30",
-  confirmed: "bg-blue-500/20 text-blue-600 border-blue-500/30",
-  dispatched: "bg-purple-500/20 text-purple-600 border-purple-500/30",
-  delivered: "bg-green-500/20 text-green-600 border-green-500/30",
-  cancelled: "bg-red-500/20 text-red-600 border-red-500/30",
-};
-
-const STATUS_ICONS: Record<OrderStatus, React.FC<{ className?: string }>> = {
-  pending: Clock,
-  confirmed: CheckCircle,
-  dispatched: Truck,
-  delivered: CheckCircle,
-  cancelled: X,
-};
-
 export default function AdminPage() {
+  const router = useRouter();
+  const { isAuthenticated, logout } = useAdminStore();
   const { orders, updateOrderStatus } = useOrderStore();
+  const [mounted, setMounted] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | "all">("all");
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+
+  useEffect(() => {
+    setMounted(true);
+    if (!isAuthenticated) {
+      router.push("/admin-login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!mounted || !isAuthenticated) {
+    return null;
+  }
+
+  const STATUS_COLORS: Record<OrderStatus, string> = {
+    pending: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30",
+    confirmed: "bg-blue-500/20 text-blue-600 border-blue-500/30",
+    dispatched: "bg-purple-500/20 text-purple-600 border-purple-500/30",
+    delivered: "bg-green-500/20 text-green-600 border-green-500/30",
+    cancelled: "bg-red-500/20 text-red-600 border-red-500/30",
+  };
+
+  const STATUS_ICONS: Record<OrderStatus, React.FC<{ className?: string }>> = {
+    pending: Clock,
+    confirmed: CheckCircle,
+    dispatched: Truck,
+    delivered: CheckCircle,
+    cancelled: X,
+  };
 
   const filteredOrders = useMemo(() => {
     let filtered = orders;
@@ -96,11 +113,23 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-12 max-w-7xl">
-        <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-primary via-accent to-accent-purple bg-clip-text text-transparent">
-            ADMIN DASHBOARD
-          </h1>
-          <p className="text-muted-foreground">Manage orders and track customer deliveries</p>
+        <div className="mb-12 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black mb-2 bg-gradient-to-r from-primary via-accent to-accent-purple bg-clip-text text-transparent">
+              ADMIN DASHBOARD
+            </h1>
+            <p className="text-muted-foreground">Manage orders and track customer deliveries</p>
+          </div>
+          <button
+            onClick={() => {
+              logout();
+              router.push("/admin-login");
+            }}
+            className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-2 font-bold text-sm"
+          >
+            <LogOut className="w-4 h-4" />
+            LOGOUT
+          </button>
         </div>
 
         {/* Status Overview */}
