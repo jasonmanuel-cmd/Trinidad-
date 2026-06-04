@@ -5,18 +5,27 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCartStore } from "@/store/useCartStore";
 import { useVIPStore } from "@/store/vipStore";
+import { useOrderStore } from "@/store/useOrderStore";
 import { formatCurrency } from "@/lib/utils";
 import { ShieldCheck, Truck, CreditCard, AlertCircle, Crown, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { VIP_FREE_PREROLL, VIP_GIFT_BAGS } from "@/data/mockProducts";
+import CashAppInstructions from "@/components/CashAppInstructions";
 
 export default function CheckoutPage() {
   const { items, total, clearCart, addItem } = useCartStore();
   const { vipMember, useCredit, addDelivery, hasMonthlyGiftBag, claimMonthlyGiftBag } = useVIPStore();
+  const { addOrder } = useOrderStore();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditApplied, setCreditApplied] = useState(0);
   const [perksAdded, setPerksAdded] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "cashapp">(vipMember.isVIP ? "cod" : "cod");
+  const [showCashAppModal, setShowCashAppModal] = useState(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [instructions, setInstructions] = useState("");
 
   // Auto-add VIP perks on mount
   useEffect(() => {
@@ -63,6 +72,13 @@ export default function CheckoutPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Validate form
+    if (!name || !phone || !address) {
+      alert("Please fill in all required fields");
+      setIsSubmitting(false);
+      return;
+    }
+
     // Apply VIP credit if used
     if (creditApplied > 0) {
       useCredit(creditApplied);
@@ -73,11 +89,45 @@ export default function CheckoutPage() {
       addDelivery();
     }
 
-    // Simulate order processing
-    setTimeout(() => {
-      clearCart();
-      router.push("/order-confirmation");
-    }, 2000);
+    // Create order in store
+    const order = addOrder({
+      type: "regular",
+      items: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        category: item.category,
+      })),
+      subtotal: subtotal,
+      deliveryFee: deliveryFee,
+      total: finalTotal,
+      status: paymentMethod === "cod" ? "pending" : "pending",
+      paymentMethod: paymentMethod,
+      deliveryInfo: {
+        name,
+        phone,
+        address,
+        instructions: instructions || undefined,
+      },
+      isVIPOrder: vipMember.isVIP,
+      vipCreditUsed: creditApplied,
+    });
+
+    // Show Cash App modal if needed
+    if (paymentMethod === "cashapp") {
+      setShowCashAppModal(true);
+      setTimeout(() => {
+        clearCart();
+        router.push(`/order-confirmation?orderId=${order.id}`);
+      }, 2000);
+    } else {
+      // COD order - proceed immediately
+      setTimeout(() => {
+        clearCart();
+        router.push(`/order-confirmation?orderId=${order.id}`);
+      }, 2000);
+    }
   };
 
   if (items.length === 0) {
@@ -144,19 +194,19 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Full Name</label>
-                  <input required type="text" className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="Matching your ID" />
+                  <input required type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="Matching your ID" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Phone Number</label>
-                  <input required type="tel" className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="(661) 000-0000" />
+                  <input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="(661) 000-0000" />
                 </div>
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Delivery Address</label>
-                  <input required type="text" className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="Bakersfield, CA street address" />
+                  <input required type="text" value={address} onChange={(e) => setAddress(e.target.value)} className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="Bakersfield, CA street address" />
                 </div>
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Apt / Suite / Notes</label>
-                  <input type="text" className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="e.g. Gate code, ring doorbell" />
+                  <input type="text" value={instructions} onChange={(e) => setInstructions(e.target.value)} className="w-full bg-card border border-border rounded-xl p-4 focus:border-primary outline-none" placeholder="e.g. Gate code, ring doorbell" />
                 </div>
               </div>
             </div>
@@ -170,7 +220,7 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 {vipMember.isVIP ? (
                   <div className="relative flex items-center gap-4 p-6 bg-gradient-to-r from-primary/20 to-accent-purple/20 border border-primary rounded-2xl">
-                    <input type="radio" name="payment" value="cod" defaultChecked className="accent-primary" readOnly />
+                    <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-primary" />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold">Cash on Delivery (VIP Only)</h4>
@@ -181,27 +231,30 @@ export default function CheckoutPage() {
                     <Truck className="w-6 h-6 text-primary" />
                   </div>
                 ) : (
-                  <label className="relative flex items-center gap-4 p-6 bg-card border border-primary rounded-2xl cursor-pointer">
-                    <input type="radio" name="payment" value="cod" defaultChecked className="accent-primary" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold">Cash on Delivery</h4>
-                        <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-black uppercase">Recommended</span>
+                  <>
+                    <label className="relative flex items-center gap-4 p-6 bg-card border border-primary rounded-2xl cursor-pointer">
+                      <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-primary" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold">Cash on Delivery</h4>
+                          <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-black uppercase">Recommended</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Pay with cash when your driver arrives.</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">Pay with cash when your driver arrives.</p>
-                    </div>
-                    <Truck className="w-6 h-6 text-primary" />
-                  </label>
-                )}
-                {!vipMember.isVIP && (
-                  <label className="relative flex items-center gap-4 p-6 bg-card border border-border rounded-2xl cursor-pointer opacity-50 grayscale">
-                    <input type="radio" name="payment" value="cashapp" disabled className="accent-primary" />
-                    <div className="flex-1">
-                      <h4 className="font-bold">Cash App / Manual</h4>
-                      <p className="text-sm text-muted-foreground">Instructional payment flow (Coming Soon).</p>
-                    </div>
-                    <CreditCard className="w-6 h-6 text-muted-foreground" />
-                  </label>
+                      <Truck className="w-6 h-6 text-primary" />
+                    </label>
+                    <label className="relative flex items-center gap-4 p-6 bg-card border border-accent/30 rounded-2xl cursor-pointer hover:border-accent transition-colors">
+                      <input type="radio" name="payment" value="cashapp" checked={paymentMethod === "cashapp"} onChange={() => setPaymentMethod("cashapp")} className="accent-primary" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold">Cash App</h4>
+                          <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded-full font-black uppercase">New</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Send payment via Cash App before delivery. Instructions provided after checkout.</p>
+                      </div>
+                      <CreditCard className="w-6 h-6 text-accent" />
+                    </label>
+                  </>
                 )}
               </div>
             </div>
@@ -272,6 +325,7 @@ export default function CheckoutPage() {
         </form>
       </main>
       <Footer />
+      <CashAppInstructions isOpen={showCashAppModal} onClose={() => setShowCashAppModal(false)} totalAmount={finalTotal} />
     </div>
   );
 }
