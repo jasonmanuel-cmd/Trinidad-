@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!product) return {};
 
   return {
-    title: `${product.name} | ${product.brand} | Trinidad's Trippy Treats`,
+    title: `${product.name} | ${product.brand} | Trippy Head Stash Delivery`,
     description: product.description,
   };
 }

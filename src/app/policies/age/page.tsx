@@ -6,7 +6,7 @@ export default function AgePolicy() {
       <section className="space-y-4">
         <h2 className="text-2xl font-bold text-primary">21+ REQUIRED</h2>
         <p className="text-muted-foreground leading-relaxed">
-          Trinidad&apos;s Trippy Treats operates in strict compliance with California state law. You must be at least 21 years of age to access this website and purchase products.
+          Trippy Head Stash Delivery operates in strict compliance with California state law. You must be at least 21 years of age to access this website and purchase products.
         </p>
       </section>
 

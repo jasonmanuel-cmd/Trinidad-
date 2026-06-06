@@ -30,7 +30,7 @@ export default function HowItWorks() {
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-3xl md:text-5xl font-black tracking-tight">HOW IT WORKS</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Disciplined retail from browse to delivery. Here&apos;s what to expect when you order from Trinidad&apos;s.
+            Disciplined retail from browse to delivery. Here&apos;s what to expect when you order from Trippy Head Stash.
           </p>
         </div>
 

@@ -18,7 +18,7 @@ export default function Footer() {
                 />
               </div>
               <span className="font-bold text-lg tracking-tight">
-                TRINIDAD&apos;S <span className="text-primary">TRIPPY TREATS</span>
+                TRIPPY HEAD <span className="text-primary">STASH DELIVERY</span>
               </span>
             </Link>
             <p className="text-muted-foreground leading-relaxed">
@@ -59,7 +59,7 @@ export default function Footer() {
             <ul className="space-y-4 text-muted-foreground">
               <li className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-primary" />
-                <span>support@trinidads.com</span>
+                <span>support@trippyheadstash.com</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-primary" />
@@ -73,7 +73,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} Trinidad&apos;s Trippy Treats. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Trippy Head Stash Delivery. All rights reserved.</p>
           <p>License: C10-0000XXX-LIC (Pending)</p>
         </div>
       </div>

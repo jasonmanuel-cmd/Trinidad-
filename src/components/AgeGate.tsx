@@ -51,7 +51,7 @@ export default function AgeGate() {
               <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-primary/30 ring-offset-4 ring-offset-card">
                 <Image
                   src="/trippy'sheadstashlogo.png"
-                  alt="Trinidad's Trippy Treats"
+                  alt="Trippy Head Stash Delivery"
                   fill
                   className="object-cover"
                   priority
@@ -61,7 +61,7 @@ export default function AgeGate() {
             
             <div className="space-y-3">
               <h1 className="text-2xl font-black uppercase tracking-tight">
-                TRINIDAD&apos;S <span className="text-primary italic">TRIPPY TREATS</span>
+                TRIPPY HEAD <span className="text-primary italic">STASH DELIVERY</span>
               </h1>
               <p className="text-muted-foreground leading-relaxed text-base">
                 You must be 21 or older to access this site. Valid government-issued ID required at delivery.

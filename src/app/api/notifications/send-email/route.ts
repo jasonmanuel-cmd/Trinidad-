@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
     // Send email via Resend
     const response = await resend.emails.send({
-      from: `${process.env.EMAIL_FROM_NAME || "Trinidad Trippy Treats"} <${process.env.EMAIL_FROM || "noreply@resend.dev"}>`,
+      from: `${process.env.EMAIL_FROM_NAME || "Trippy Head Stash Delivery"} <${process.env.EMAIL_FROM || "noreply@resend.dev"}>`,
       to,
       subject: getEmailSubject(orderNumber, status),
       html: htmlContent,
@@ -281,7 +281,7 @@ function generateEmailHTML(data: SendEmailRequest & { items?: Array<{ name: stri
           <div class="email-wrapper">
             <!-- Header -->
             <div class="header">
-              <h1>TRINIDAD TRIPPY TREATS</h1>
+              <h1>TRIPPY HEAD STASH DELIVERY</h1>
               <p>Order Status Update</p>
               <div class="status-badge">${status.toUpperCase()}</div>
             </div>
@@ -321,14 +321,14 @@ function generateEmailHTML(data: SendEmailRequest & { items?: Array<{ name: stri
               <div class="divider"></div>
               <p style="font-size: 13px; color: #6B7280; margin-top: 20px;">
                 Have questions? Reply to this email or visit our support center at 
-                <a href="mailto:support@trinidad-trippy-treats.com" style="color: #E83E6B; text-decoration: none;">support@trinidad-trippy-treats.com</a>
+                <a href="mailto:support@trippyheadstash.com" style="color: #E83E6B; text-decoration: none;">support@trippyheadstash.com</a>
               </p>
             </div>
 
             <!-- Footer -->
             <div class="footer">
               <p style="margin: 0 0 8px 0;">
-                Trinidad Trippy Treats™ | Est. 2026
+                Trippy Head Stash Delivery™ | Est. 2026
               </p>
               <p style="margin: 0; font-size: 11px; color: #9CA3AF;">
                 This is an automated message. Please do not reply with sensitive information.

@@ -32,9 +32,9 @@ export default function Hero() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-5xl md:text-7xl font-black tracking-tight leading-tight"
           >
-            TRINIDAD&apos;S <br />
+            TRIPPY HEAD <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent-purple to-accent italic">
-              TRIPPY TREATS
+              STASH DELIVERY
             </span>
           </motion.h1>
 

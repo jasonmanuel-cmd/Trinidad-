@@ -35,7 +35,7 @@ export default function Header() {
             />
           </div>
           <span className="font-bold text-xl tracking-tight hidden sm:block">
-            TRINIDAD&apos;S <span className="text-primary font-black">TRIPPY TREATS</span>
+            TRIPPY HEAD <span className="text-primary font-black">STASH DELIVERY</span>
             {vipMember.isVIP && (
               <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-primary to-accent-purple rounded-full text-xs font-black text-white">
                 <Crown className="w-3 h-3" />

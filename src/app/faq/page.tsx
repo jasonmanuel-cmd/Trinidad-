@@ -3,7 +3,7 @@ import Footer from "@/components/Footer";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "FAQ | Trinidad's Trippy Treats",
+  title: "FAQ | Trippy Head Stash Delivery",
   description: "Frequently asked questions about our premium cannabis delivery service in Bakersfield.",
 };
 

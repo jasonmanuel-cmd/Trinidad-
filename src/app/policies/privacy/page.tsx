@@ -36,7 +36,7 @@ export default function PrivacyPolicy() {
 
             <section className="space-y-4 border-t border-border pt-8">
               <p className="text-xs text-muted-foreground italic">
-                If you have any questions about our privacy practices, please contact us at support@trinidads.com.
+                If you have any questions about our privacy practices, please contact us at support@trippyheadstash.com.
               </p>
             </section>
           </div>

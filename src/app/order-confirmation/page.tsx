@@ -89,7 +89,7 @@ export default function OrderConfirmationPage() {
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl font-black tracking-tight">ORDER CONFIRMED</h1>
             <p className="text-xl text-muted-foreground">
-              Thank you for choosing Trinidad&apos;s Trippy Treats. Your order <span className="text-foreground font-bold">{order.orderNumber}</span> has been received.
+              Thank you for choosing Trippy Head Stash Delivery. Your order <span className="text-foreground font-bold">{order.orderNumber}</span> has been received.
             </p>
           </div>
 

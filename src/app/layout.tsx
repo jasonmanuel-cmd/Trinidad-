@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Trinidad's Trippy Treats | Premium Cannabis Delivery Bakersfield",
+  title: "Trippy Head Stash Delivery | Premium Cannabis Delivery Bakersfield",
   description: "Bakersfield's premium cannabis delivery service. Boutique flower, edibles, and curated drops delivered with ID-verified handoff. 21+ only.",
 };
 

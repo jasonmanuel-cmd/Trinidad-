@@ -56,7 +56,7 @@ export default function AdminLoginPage() {
               ADMIN ACCESS
             </h1>
             <p className="text-muted-foreground">
-              Trinidad&apos;s Trippy Treats Administration
+              Trippy Head Stash Delivery Admin
             </p>
           </div>
 

@@ -5,7 +5,7 @@ import { PRODUCTS } from "@/data/mockProducts";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Shop Menu | Trinidad's Trippy Treats",
+  title: "Shop Menu | Trippy Head Stash Delivery",
   description: "Browse our premium selection of cannabis flower, edibles, and concentrates for fast delivery in Bakersfield.",
 };
 

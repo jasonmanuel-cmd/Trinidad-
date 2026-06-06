@@ -63,7 +63,7 @@ export default function SplashScreen() {
             <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden ring-2 ring-primary/30 ring-offset-4 ring-offset-background">
               <Image
                 src="/trippy'sheadstashlogo.png"
-                alt="Trinidad's Trippy Treats"
+                alt="Trippy Head Stash Delivery"
                 fill
                 className="object-cover"
                 priority
@@ -71,10 +71,10 @@ export default function SplashScreen() {
             </div>
             <div className="text-center space-y-1">
               <h1 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">
-                TRINIDAD&apos;S
+                TRIPPY HEAD
               </h1>
               <p className="text-lg md:text-xl font-bold italic text-primary tracking-tight">
-                TRIPPY TREATS
+                STASH DELIVERY
               </p>
             </div>
           </motion.div>

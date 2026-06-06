@@ -36,7 +36,7 @@ export default function TermsOfService() {
 
             <section className="space-y-4 border-t border-border pt-8">
               <p className="text-xs text-muted-foreground italic">
-                By placing an order with Trinidad&apos;s Trippy Treats, you agree to abide by these terms and all local and state regulations.
+                By placing an order with Trippy Head Stash Delivery, you agree to abide by these terms and all local and state regulations.
               </p>
             </section>
           </div>
