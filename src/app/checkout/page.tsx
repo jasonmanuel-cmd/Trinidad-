@@ -7,10 +7,9 @@ import { useCartStore } from "@/store/useCartStore";
 import { useVIPStore } from "@/store/vipStore";
 import { useOrderStore } from "@/store/useOrderStore";
 import { formatCurrency } from "@/lib/utils";
-import { ShieldCheck, Truck, CreditCard, AlertCircle, Crown, Gift } from "lucide-react";
+import { ShieldCheck, Truck, AlertCircle, Crown, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { VIP_FREE_PREROLL, VIP_GIFT_BAGS } from "@/data/mockProducts";
-import CashAppInstructions from "@/components/CashAppInstructions";
 
 export default function CheckoutPage() {
   const { items, total, clearCart, addItem } = useCartStore();
@@ -20,8 +19,6 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [creditApplied, setCreditApplied] = useState(0);
   const [perksAdded, setPerksAdded] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "cashapp">(vipMember.isVIP ? "cod" : "cod");
-  const [showCashAppModal, setShowCashAppModal] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,35 +28,28 @@ export default function CheckoutPage() {
   // Auto-add VIP perks on mount
   useEffect(() => {
     if (vipMember.isVIP && !perksAdded) {
-      // Add free pre-roll
       addItem(VIP_FREE_PREROLL);
-
-      // Add monthly gift bag if eligible
       if (hasMonthlyGiftBag()) {
         const randomGiftBag = VIP_GIFT_BAGS[Math.floor(Math.random() * VIP_GIFT_BAGS.length)];
         addItem(randomGiftBag);
         claimMonthlyGiftBag();
       }
-
       setPerksAdded(true);
     }
   }, [vipMember.isVIP, perksAdded, addItem, hasMonthlyGiftBag, claimMonthlyGiftBag]);
 
-  // Calculate subtotal
   const subtotal = total;
 
-  // Calculate delivery fee
   const getDeliveryFee = () => {
     if (vipMember.isVIP) {
-      return subtotal >= 20 ? 0 : 20 - subtotal; // Free if $20+, otherwise charge difference to reach $20
+      return subtotal >= 20 ? 0 : 20 - subtotal;
     }
-    return subtotal >= 30 ? 0 : 10; // $10 if under $30, free if $30+
+    return subtotal >= 30 ? 0 : 10;
   };
 
   const deliveryFee = getDeliveryFee();
   const subtotalWithDelivery = subtotal + deliveryFee;
 
-  // Apply VIP credit if available
   useEffect(() => {
     if (vipMember.isVIP && vipMember.creditBalance > 0) {
       const canApply = Math.min(10, vipMember.creditBalance);
@@ -73,14 +63,12 @@ export default function CheckoutPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validate form
     if (!name || !email || !phone || !address) {
       alert("Please fill in all required fields");
       setIsSubmitting(false);
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert("Please enter a valid email address");
@@ -88,17 +76,14 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Apply VIP credit if used
     if (creditApplied > 0) {
       useCredit(creditApplied);
     }
 
-    // Track VIP delivery
     if (vipMember.isVIP) {
       addDelivery();
     }
 
-    // Create order in store
     const order = addOrder({
       type: "regular",
       items: items.map((item) => ({
@@ -111,8 +96,8 @@ export default function CheckoutPage() {
       subtotal: subtotal,
       deliveryFee: deliveryFee,
       total: finalTotal,
-      status: paymentMethod === "cod" ? "pending" : "pending",
-      paymentMethod: paymentMethod,
+      status: "pending",
+      paymentMethod: "cod",
       deliveryInfo: {
         name,
         phone,
@@ -124,20 +109,10 @@ export default function CheckoutPage() {
       vipCreditUsed: creditApplied,
     });
 
-    // Show Cash App modal if needed
-    if (paymentMethod === "cashapp") {
-      setShowCashAppModal(true);
-      setTimeout(() => {
-        clearCart();
-        router.push(`/order-confirmation?orderId=${order.id}`);
-      }, 2000);
-    } else {
-      // COD order - proceed immediately
-      setTimeout(() => {
-        clearCart();
-        router.push(`/order-confirmation?orderId=${order.id}`);
-      }, 2000);
-    }
+    setTimeout(() => {
+      clearCart();
+      router.push(`/order-confirmation?orderId=${order.id}`);
+    }, 2000);
   };
 
   if (items.length === 0) {
@@ -231,45 +206,16 @@ export default function CheckoutPage() {
                 <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center font-bold text-sm">2</div>
                 <h2 className="text-2xl font-bold">PAYMENT METHOD</h2>
               </div>
-              <div className="space-y-4">
-                {vipMember.isVIP ? (
-                  <div className="relative flex items-center gap-4 p-6 bg-gradient-to-r from-primary/20 to-accent-purple/20 border border-primary rounded-2xl">
-                    <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-primary" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold">Cash on Delivery (VIP Only)</h4>
-                        <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded-full font-black uppercase">Exclusive</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">VIP members enjoy cash on delivery exclusively.</p>
-                    </div>
-                    <Truck className="w-6 h-6 text-primary" />
-                  </div>
-                ) : (
-                  <>
-                    <label className="relative flex items-center gap-4 p-6 bg-card border border-primary rounded-2xl cursor-pointer">
-                      <input type="radio" name="payment" value="cod" checked={paymentMethod === "cod"} onChange={() => setPaymentMethod("cod")} className="accent-primary" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold">Cash on Delivery</h4>
-                          <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-black uppercase">Recommended</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Pay with cash when your driver arrives.</p>
-                      </div>
-                      <Truck className="w-6 h-6 text-primary" />
-                    </label>
-                    <label className="relative flex items-center gap-4 p-6 bg-card border border-accent/30 rounded-2xl cursor-pointer hover:border-accent transition-colors">
-                      <input type="radio" name="payment" value="cashapp" checked={paymentMethod === "cashapp"} onChange={() => setPaymentMethod("cashapp")} className="accent-primary" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-bold">Cash App</h4>
-                          <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded-full font-black uppercase">New</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Send payment via Cash App before delivery. Instructions provided after checkout.</p>
-                      </div>
-                      <CreditCard className="w-6 h-6 text-accent" />
-                    </label>
-                  </>
-                )}
+              <div className="p-6 bg-card border border-primary/30 rounded-2xl flex gap-4 items-center">
+                <Truck className="w-8 h-8 text-primary shrink-0" />
+                <div className="space-y-1">
+                  <h4 className="font-bold">Cash on Delivery</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {vipMember.isVIP
+                      ? "Pay with cash when your driver arrives. Exclusive to VIP members."
+                      : "Pay with cash when your driver arrives. Simple and secure."}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -295,7 +241,6 @@ export default function CheckoutPage() {
               </div>
 
               <div className="pt-6 border-t border-border space-y-4">
-                {/* Breakdown */}
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
@@ -339,7 +284,6 @@ export default function CheckoutPage() {
         </form>
       </main>
       <Footer />
-      <CashAppInstructions isOpen={showCashAppModal} onClose={() => setShowCashAppModal(false)} totalAmount={finalTotal} />
     </div>
   );
 }

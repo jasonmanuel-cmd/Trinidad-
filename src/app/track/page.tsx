@@ -225,7 +225,7 @@ function OrderTracker({ order }: { order: Order }) {
               Payment Method
             </p>
             <p className="font-semibold mt-2 capitalize">
-              {order.paymentMethod === "cod" ? "Cash on Delivery" : "Cash App"}
+              Cash on Delivery
             </p>
           </div>
           <div className="text-right">

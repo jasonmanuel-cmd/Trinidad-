@@ -11,7 +11,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2">
               <div className="relative w-10 h-10 rounded-full overflow-hidden border border-primary">
                 <Image
-                  src="/logo.png"
+                  src="/trippy'sheadstashlogo.png"
                   alt="Logo"
                   fill
                   className="object-cover"

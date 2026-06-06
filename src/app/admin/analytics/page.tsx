@@ -95,9 +95,9 @@ export default function AnalyticsPage() {
   const deliveryRate = totalOrders > 0 ? (deliveredOrders / totalOrders) * 100 : 0;
 
   const paymentMethods = useMemo(() => {
-    const methods: Record<string, number> = { cod: 0, cashapp: 0 };
+    const methods: Record<string, number> = { cod: 0 };
     filteredOrders.forEach((order) => {
-      methods[order.paymentMethod]++;
+      if (order.paymentMethod === "cod") methods.cod++;
     });
     return methods;
   }, [filteredOrders]);
@@ -267,12 +267,9 @@ export default function AnalyticsPage() {
                 </p>
                 <p className="text-2xl font-black mt-1">{paymentMethods.cod}</p>
               </div>
-              <div className="border-t border-border pt-3">
-                <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">
-                  Cash App
-                </p>
-                <p className="text-xl font-black text-accent mt-1">{paymentMethods.cashapp}</p>
-              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed mt-3 pt-3 border-t border-border">
+                All orders are processed via Cash on Delivery. No online payment required.
+              </p>
             </div>
           </div>
         </div>

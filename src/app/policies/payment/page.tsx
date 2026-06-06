@@ -15,21 +15,9 @@ export default function PaymentPolicy() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-primary">CASH APP & MANUAL PAYMENTS</h2>
+        <h2 className="text-2xl font-bold text-primary">VIP MEMBERSHIP</h2>
         <p className="text-muted-foreground leading-relaxed">
-          We offer manual payment options via Cash App for certain orders. If selected:
-        </p>
-        <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-          <li>Detailed instructions will be provided after checkout.</li>
-          <li>Payments must be confirmed by our admin team before the order is dispatched.</li>
-          <li>Order names must match the payment account name.</li>
-        </ul>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-primary">SQUARE (CBD/HEMP ONLY)</h2>
-        <p className="text-muted-foreground leading-relaxed">
-          Online card processing via Square is available exclusively for eligible hemp and CBD products containing less than 0.3% THC. Standard cannabis products cannot be purchased via online card processing at this time.
+          VIP membership is a separate monthly subscription ($50/month) paid via Cash App or other agreed method. Membership includes exclusive benefits like free delivery on orders $20+, $10 monthly credit, free pre-rolls, monthly gift bags, and more.
         </p>
       </section>
 

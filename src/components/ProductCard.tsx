@@ -7,9 +7,13 @@ import { formatCurrency } from "@/lib/utils";
 import { ShoppingBag, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCartStore } from "@/store/useCartStore";
+import { generateProductImageDataUrl, generatePreorderImageDataUrl } from "@/lib/productImages";
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCartStore();
+  const imgSrc = product.isPreorder
+    ? generatePreorderImageDataUrl(product.brand, product.name)
+    : generateProductImageDataUrl(product.name, product.category, product.thc);
 
   return (
     <motion.div
@@ -17,10 +21,13 @@ export default function ProductCard({ product }: { product: Product }) {
       className="group bg-card border border-border rounded-2xl overflow-hidden flex flex-col"
     >
       <Link href={`/product/${product.slug}`} className="relative aspect-square overflow-hidden bg-muted">
-        {/* Placeholder for real product images */}
-        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/20 font-black text-4xl">
-          {product.category.toUpperCase()}
-        </div>
+        <Image
+          src={imgSrc}
+          alt={product.name}
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
         <div className="absolute top-4 left-4 z-10">
           <span className={
             `px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border

@@ -58,7 +58,7 @@ export default function FloatingLogos() {
             }}
           >
             <Image
-              src="/logo.png"
+              src="/trippy'sheadstashlogo.png"
               alt=""
               fill
               className="object-cover"

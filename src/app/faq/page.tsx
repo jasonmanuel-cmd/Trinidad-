@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: "What payment methods do you accept?",
-    a: "Our primary method is Cash on Delivery (COD). We also support manual Cash App payments and Square for eligible CBD products."
+    a: "We accept Cash on Delivery (COD) for all orders. Pay with cash when your driver arrives. VIP membership is a separate monthly subscription."
   },
   {
     q: "Do I need to show ID?",

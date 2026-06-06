@@ -62,7 +62,7 @@ export default function SplashScreen() {
           >
             <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden ring-2 ring-primary/30 ring-offset-4 ring-offset-background">
               <Image
-                src="/logo.png"
+                src="/trippy'sheadstashlogo.png"
                 alt="Trinidad's Trippy Treats"
                 fill
                 className="object-cover"

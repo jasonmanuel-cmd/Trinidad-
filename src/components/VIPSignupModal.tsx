@@ -92,7 +92,7 @@ export default function VIPSignupModal({ isOpen, onClose }: VIPSignupModalProps)
         <div className="bg-gradient-to-r from-primary/20 to-accent-purple/20 rounded-2xl p-6 border border-primary/30 space-y-2 text-center">
           <p className="text-muted-foreground text-sm">Monthly Membership</p>
           <p className="text-4xl font-black">$50/mo</p>
-          <p className="text-xs text-muted-foreground">Billed monthly • Cancel anytime</p>
+          <p className="text-xs text-muted-foreground">Billed monthly via Cash App • Cancel anytime</p>
         </div>
 
         {/* Buttons */}

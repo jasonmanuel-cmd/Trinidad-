@@ -28,7 +28,7 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-2 group">
           <div className="relative w-12 h-12 rounded-full overflow-hidden border border-primary group-hover:scale-105 transition-transform">
             <Image
-              src="/logo.png"
+              src="/trippy'sheadstashlogo.png"
               alt="Logo"
               fill
               className="object-cover"

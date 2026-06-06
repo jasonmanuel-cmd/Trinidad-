@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ArrowLeft, ShoppingBag, ShieldCheck, Truck, Clock } from "lucide-react";
 import AddToCartButton from "@/components/AddToCartButton";
 import { Metadata } from "next";
+import { generateProductImageDataUrl, generatePreorderImageDataUrl } from "@/lib/productImages";
 
 export function generateStaticParams() {
   return PRODUCTS.map((product) => ({
@@ -50,10 +51,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {/* Image Section */}
           <div className="relative aspect-square rounded-3xl overflow-hidden bg-card border border-border">
             <Image
-              src={product.image}
+              src={product.isPreorder
+                ? generatePreorderImageDataUrl(product.brand, product.name)
+                : generateProductImageDataUrl(product.name, product.category, product.thc)}
               alt={product.name}
               fill
               className="object-cover"
+              priority
             />
             {product.isPreorder && (
               <div className="absolute top-6 left-6 bg-primary text-primary-foreground px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest italic">

@@ -456,9 +456,7 @@ export default function AdminPage() {
                       Payment Method
                     </p>
                     <p className="text-sm font-bold capitalize">
-                      {selectedOrder.paymentMethod === "cod"
-                        ? "Cash on Delivery"
-                        : "Cash App"}
+                      Cash on Delivery
                     </p>
                   </div>
                 </div>

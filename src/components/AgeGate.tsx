@@ -50,7 +50,7 @@ export default function AgeGate() {
             <div className="flex justify-center">
               <div className="relative w-24 h-24 rounded-full overflow-hidden ring-2 ring-primary/30 ring-offset-4 ring-offset-card">
                 <Image
-                  src="/logo.png"
+                  src="/trippy'sheadstashlogo.png"
                   alt="Trinidad's Trippy Treats"
                   fill
                   className="object-cover"
