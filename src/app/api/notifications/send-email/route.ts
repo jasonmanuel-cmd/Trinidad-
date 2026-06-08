@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 export interface SendEmailRequest {
   to: string;
@@ -65,7 +71,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Send email via Resend
-    const response = await resend.emails.send({
+    const response = await getResend().emails.send({
       from: `${process.env.EMAIL_FROM_NAME || "Trippy Head Stash Delivery"} <${process.env.EMAIL_FROM || "noreply@resend.dev"}>`,
       to,
       subject: getEmailSubject(orderNumber, status),

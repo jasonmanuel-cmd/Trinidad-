@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { useCartStore } from "@/store/useCartStore";
 import { useVIPStore } from "@/store/vipStore";
 import { useOrderStore } from "@/store/useOrderStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { formatCurrency } from "@/lib/utils";
 import { ShieldCheck, Truck, AlertCircle, Crown, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ export default function CheckoutPage() {
   const [creditApplied, setCreditApplied] = useState(0);
   const [perksAdded, setPerksAdded] = useState(false);
   const [name, setName] = useState("");
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -37,6 +39,13 @@ export default function CheckoutPage() {
       setPerksAdded(true);
     }
   }, [vipMember.isVIP, perksAdded, addItem, hasMonthlyGiftBag, claimMonthlyGiftBag]);
+
+  // Auto-fill email if logged in
+  useEffect(() => {
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [user]);
 
   const subtotal = total;
 

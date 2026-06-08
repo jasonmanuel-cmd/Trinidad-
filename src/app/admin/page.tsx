@@ -8,6 +8,7 @@ import { useOrderStore, OrderStatus, Order } from "@/store/useOrderStore";
 import { useVIPStore } from "@/store/vipStore";
 import { useAdminStore } from "@/store/useAdminStore";
 import { useNotificationStore } from "@/store/useNotificationStore";
+import { supabase } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/utils";
 import { exportOrdersToCSV, exportOrdersToJSON } from "@/lib/exportOrders";
 import {
@@ -262,13 +263,23 @@ export default function AdminPage() {
               📧 NOTIFICATIONS
             </button>
             <button
+              onClick={() => router.push("/admin/products")}
+              className="px-4 py-2 bg-accent/10 text-accent rounded-lg hover:bg-accent/20 transition-colors border border-accent/30 font-bold text-sm"
+            >
+              📦 PRODUCTS
+            </button>
+            <button
               onClick={() => router.push("/admin/analytics")}
               className="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors border border-primary/30 font-bold text-sm"
             >
               📊 ANALYTICS
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
+                const method = useAdminStore.getState().authMethod;
+                if (method === "supabase" && supabase) {
+                  await supabase.auth.signOut();
+                }
                 logout();
                 router.push("/admin-login");
               }}

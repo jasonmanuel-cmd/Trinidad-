@@ -5,6 +5,7 @@ import AgeGate from "@/components/AgeGate";
 import SplashScreen from "@/components/SplashScreen";
 import FloatingLogos from "@/components/FloatingLogos";
 import StarGalaxy from "@/components/StarGalaxy";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,7 +37,9 @@ export default function RootLayout({
         <SplashScreen />
         <AgeGate />
         <FloatingLogos />
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

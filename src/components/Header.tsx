@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingCart, Menu, X, User, Crown } from "lucide-react";
-import { useState } from "react";
+import { ShoppingCart, Menu, X, User, Crown, LogOut } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/useCartStore";
 import { useVIPStore } from "@/store/vipStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_LINKS = [
@@ -18,9 +19,22 @@ const NAV_LINKS = [
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const { items } = useCartStore();
   const { vipMember } = useVIPStore();
+  const { user, signOut, isSupabaseConfigured } = useAuth();
   const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
@@ -59,15 +73,65 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          {vipMember.isVIP ? (
-            <Link href="/account" className="p-2 text-primary hover:opacity-80 transition-opacity" title="VIP Account">
-              <Crown className="w-6 h-6" />
-            </Link>
-          ) : (
-            <Link href="/account" className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Account">
-              <User className="w-6 h-6" />
-            </Link>
-          )}
+          <div className="relative" ref={userMenuRef}>
+            {user ? (
+              <>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="p-2 text-primary hover:opacity-80 transition-opacity"
+                  title="Account"
+                >
+                  {vipMember.isVIP ? (
+                    <Crown className="w-6 h-6" />
+                  ) : (
+                    <User className="w-6 h-6" />
+                  )}
+                </button>
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-xl shadow-xl overflow-hidden z-50"
+                    >
+                      <div className="p-4 border-b border-border">
+                        <p className="font-bold text-sm truncate">{user.email}</p>
+                        {vipMember.isVIP && (
+                          <p className="text-xs text-primary font-bold mt-1">VIP MEMBER</p>
+                        )}
+                      </div>
+                      <div className="p-2">
+                        <Link
+                          href="/account"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors text-sm font-medium"
+                        >
+                          <User className="w-4 h-4" />
+                          My Account
+                        </Link>
+                        <button
+                          onClick={() => { signOut(); setUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary transition-colors text-sm font-medium text-red-500"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : isSupabaseConfigured ? (
+              <Link href="/auth/login" className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Sign In">
+                <User className="w-6 h-6" />
+              </Link>
+            ) : (
+              <Link href="/account" className="p-2 text-muted-foreground hover:text-primary transition-colors" title="Account">
+                <User className="w-6 h-6" />
+              </Link>
+            )}
+          </div>
           <Link href="/cart" className="p-2 relative text-muted-foreground hover:text-primary transition-colors">
             <ShoppingCart className="w-6 h-6" />
             {itemCount > 0 && (

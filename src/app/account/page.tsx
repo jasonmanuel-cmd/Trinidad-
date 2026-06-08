@@ -1,16 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/contexts/AuthContext";
 import { useVIPStore } from "@/store/vipStore";
+import { useOrderStore, type Order } from "@/store/useOrderStore";
 import { formatCurrency } from "@/lib/utils";
-import { Crown, Gift, Truck, Calendar, LogOut, ArrowRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  Crown, Gift, Truck, Calendar, LogOut, User, Mail, Phone, MapPin,
+  Clock, CheckCircle, X, ShoppingBag, ArrowRight, AlertCircle
+} from "lucide-react";
 
 export default function AccountPage() {
-  const router = useRouter();
+  const { user, signOut, isSupabaseConfigured, loading } = useAuth();
   const { vipMember, cancelVIP } = useVIPStore();
+  const { orders } = useOrderStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -19,34 +25,41 @@ export default function AccountPage() {
 
   if (!mounted) return null;
 
-  // Helper function for date formatting
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }).format(date);
-  };
-
-  if (!vipMember.isVIP) {
+  // Not logged in - show prompt
+  if (!loading && !user) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
-          <div className="text-center space-y-6">
-            <Crown className="w-16 h-16 mx-auto text-muted-foreground" />
-            <h1 className="text-4xl font-black">NOT A VIP MEMBER</h1>
-            <p className="text-lg text-muted-foreground max-w-md">
-              Join our VIP membership program to unlock exclusive benefits, free delivery, monthly gifts, and more!
+          <div className="text-center space-y-6 max-w-md">
+            <User className="w-16 h-16 mx-auto text-muted-foreground" />
+            <h1 className="text-4xl font-black">SIGN IN REQUIRED</h1>
+            <p className="text-lg text-muted-foreground">
+              Sign in or create an account to manage orders, track VIP status, and more.
             </p>
-            <div className="flex flex-col gap-4 pt-4">
-              <button
-                onClick={() => router.push("/")}
-                className="px-8 py-3 bg-primary text-primary-foreground rounded-full font-bold hover:opacity-90 transition-opacity"
-              >
-                BACK TO HOME
-              </button>
-            </div>
+            {isSupabaseConfigured ? (
+              <div className="flex flex-col gap-4 pt-4">
+                <Link
+                  href="/auth/login"
+                  className="px-8 py-3 bg-primary text-primary-foreground rounded-full font-bold hover:opacity-90 transition-opacity"
+                >
+                  SIGN IN
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="px-8 py-3 bg-card border border-border rounded-full font-bold hover:border-primary transition-colors"
+                >
+                  CREATE ACCOUNT
+                </Link>
+              </div>
+            ) : (
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl text-sm text-muted-foreground">
+                Account system is being configured. You can still browse and use the VIP features locally.
+              </div>
+            )}
+            <Link href="/" className="text-sm text-muted-foreground hover:text-primary block">
+              Back to home
+            </Link>
           </div>
         </main>
         <Footer />
@@ -54,203 +67,161 @@ export default function AccountPage() {
     );
   }
 
-  const handleCancelMembership = () => {
-    if (confirm("Are you sure you want to cancel your VIP membership?")) {
-      cancelVIP();
-      router.push("/");
-    }
-  };
+  const userOrders = orders.filter(
+    (o) => o.customerEmail === user?.email || o.deliveryInfo.name === user?.user_metadata?.full_name
+  );
 
-  // Calculate next gift bag date
-  const today = new Date();
-  const nextGiftBagDate = new Date(today.getFullYear(), today.getMonth() + 1, 15);
-  if (nextGiftBagDate < today) {
-    nextGiftBagDate.setMonth(nextGiftBagDate.getMonth() + 1);
-  }
+  const STATUS_BADGE: Record<string, { color: string; icon: React.FC<{ className?: string }> }> = {
+    pending: { color: "bg-yellow-500/20 text-yellow-600", icon: Clock },
+    confirmed: { color: "bg-blue-500/20 text-blue-600", icon: CheckCircle },
+    dispatched: { color: "bg-purple-500/20 text-purple-600", icon: Truck },
+    delivered: { color: "bg-green-500/20 text-green-600", icon: CheckCircle },
+    cancelled: { color: "bg-red-500/20 text-red-600", icon: X },
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-12">
-          {/* Header */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Crown className="w-10 h-10 text-primary" />
-              <h1 className="text-5xl font-black">VIP ACCOUNT</h1>
+          {/* Profile Header */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h1 className="text-5xl font-black">MY ACCOUNT</h1>
+              <p className="text-muted-foreground">
+                {user?.user_metadata?.full_name || user?.email}
+              </p>
             </div>
-            <p className="text-lg text-muted-foreground">
-              Manage your VIP membership, track credits, and view upcoming perks.
-            </p>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Credit Balance */}
-            <div className="p-8 bg-gradient-to-br from-primary/10 to-accent-purple/10 border border-primary/30 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                  Available Credit
-                </h3>
-                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                  <Truck className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-4xl font-black text-primary">
-                  {formatCurrency(vipMember.creditBalance)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Use up to $10 per order. Resets monthly.
-                </p>
-              </div>
-            </div>
-
-            {/* Delivery Count */}
-            <div className="p-8 bg-gradient-to-br from-accent/10 to-teal/10 border border-accent/30 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                  Deliveries
-                </h3>
-                <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                  <Truck className="w-5 h-5 text-accent" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-4xl font-black text-accent">{vipMember.deliveryCount}</p>
-                <p className="text-xs text-muted-foreground">
-                  Total VIP orders completed
-                </p>
-              </div>
-            </div>
-
-            {/* Membership Status */}
-            <div className="p-8 bg-gradient-to-br from-orange/10 to-primary/10 border border-orange/30 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                  Status
-                </h3>
-                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                  <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-2xl font-black">ACTIVE</p>
-                <p className="text-xs text-muted-foreground">
-                  Renews automatically monthly
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Benefits Section */}
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <Gift className="w-6 h-6 text-accent" />
-              VIP BENEFITS
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Free Delivery */}
-              <div className="p-6 bg-card border border-border rounded-2xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-teal/20 flex items-center justify-center">
-                    <Truck className="w-5 h-5 text-teal" />
-                  </div>
-                  <h3 className="font-bold">Free Delivery</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Free delivery on all orders $20 or more. Regular customers pay $10 for orders under $30.
-                </p>
-              </div>
-
-              {/* Monthly Credit */}
-              <div className="p-6 bg-card border border-border rounded-2xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gold/20 flex items-center justify-center">
-                    <Crown className="w-5 h-5 text-gold" />
-                  </div>
-                  <h3 className="font-bold">Monthly Credit</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Receive $50 in store credit monthly. Use up to $10 per order with free pre-rolls automatically added.
-                </p>
-              </div>
-
-              {/* Free Pre-Roll */}
-              <div className="p-6 bg-card border border-border rounded-2xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-primary" />
-                  </div>
-                  <h3 className="font-bold">Complimentary Pre-Roll</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Every order includes a free premium pre-roll automatically added to your cart.
-                </p>
-              </div>
-
-              {/* Monthly Gift Bag */}
-              <div className="p-6 bg-card border border-border rounded-2xl space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                    <Gift className="w-5 h-5 text-accent" />
-                  </div>
-                  <h3 className="font-bold">Monthly Gift Bag</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Claim a free gift bag (edibles, flower, concentrate, or vape) on the 15th of each month.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Next Gift Bag */}
-          <div className="p-8 bg-gradient-to-r from-accent/10 to-primary/10 border-2 border-accent rounded-2xl space-y-4">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-6 h-6 text-accent" />
-              <h3 className="font-bold text-lg">Next Gift Bag Claim</h3>
-            </div>
-            <p className="text-3xl font-black text-accent">{formatDate(nextGiftBagDate)}</p>
-            <p className="text-muted-foreground">
-              Your next monthly gift bag will be available for claim on this date. A random selection of premium products awaits!
-            </p>
-          </div>
-
-          {/* Membership Details */}
-          <div className="space-y-4 p-8 bg-card border border-border rounded-2xl">
-            <h3 className="font-bold text-lg">MEMBERSHIP DETAILS</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-4 border-b border-border">
-                <span className="text-muted-foreground">Monthly Fee</span>
-                <span className="font-bold">$50.00 / month</span>
-              </div>
-              <div className="flex justify-between items-center pb-4 border-b border-border">
-                <span className="text-muted-foreground">Included Credit</span>
-                <span className="font-bold">$50.00 / month</span>
-              </div>
-              <div className="flex justify-between items-center pb-4 border-b border-border">
-                <span className="text-muted-foreground">Usable Credit Per Order</span>
-                <span className="font-bold">$10.00 max</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Effective Cost</span>
-                <span className="font-bold text-accent">FREE (with credit)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Cancel Membership */}
-          <div className="space-y-4">
             <button
-              onClick={handleCancelMembership}
-              className="w-full px-6 py-4 bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl font-bold hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+              onClick={signOut}
+              className="px-4 py-2 bg-secondary text-foreground rounded-xl font-bold hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"
             >
-              <LogOut className="w-5 h-5" />
-              CANCEL MEMBERSHIP
+              <LogOut className="w-4 h-4" />
+              SIGN OUT
             </button>
-            <p className="text-xs text-muted-foreground text-center">
-              You can always rejoin anytime. Your credits will be forfeited if you cancel.
-            </p>
+          </div>
+
+          {/* Profile Info */}
+          <div className="p-6 bg-card border border-border rounded-2xl space-y-4">
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <User className="w-5 h-5 text-primary" />
+              PROFILE
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="font-semibold">{user?.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="font-semibold">{user?.user_metadata?.phone || "Not set"}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <User className="w-5 h-5 text-muted-foreground" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Full Name</p>
+                  <p className="font-semibold">{user?.user_metadata?.full_name || "Not set"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* VIP Section */}
+          <div className="p-6 bg-card border border-border rounded-2xl space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-lg flex items-center gap-2">
+                <Crown className="w-5 h-5 text-primary" />
+                VIP MEMBERSHIP
+              </h2>
+              {!vipMember.isVIP ? (
+                <Link
+                  href="/delivery"
+                  className="text-sm text-primary font-bold hover:underline"
+                >
+                  Learn more →
+                </Link>
+              ) : null}
+            </div>
+
+            {vipMember.isVIP ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-gradient-to-br from-primary/10 to-accent-purple/10 border border-primary/30 rounded-xl space-y-2">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Credit</p>
+                  <p className="text-3xl font-black text-primary">{formatCurrency(vipMember.creditBalance)}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-accent/10 to-teal/10 border border-accent/30 rounded-xl space-y-2">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Deliveries</p>
+                  <p className="text-3xl font-black text-accent">{vipMember.deliveryCount}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-br from-orange/10 to-primary/10 border border-orange/30 rounded-xl space-y-2">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Status</p>
+                  <p className="text-lg font-black text-green-500">ACTIVE</p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-secondary/30 rounded-xl">
+                <p className="text-sm text-muted-foreground">
+                  You are not a VIP member. Join for $50/month to unlock free delivery, monthly credit, and more.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Orders */}
+          <div className="space-y-4">
+            <h2 className="font-bold text-lg flex items-center gap-2">
+              <ShoppingBag className="w-5 h-5 text-primary" />
+              MY ORDERS
+            </h2>
+
+            {userOrders.length === 0 ? (
+              <div className="text-center py-12 bg-card border border-border rounded-2xl">
+                <ShoppingBag className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+                <p className="text-muted-foreground mb-4">No orders yet</p>
+                <Link
+                  href="/shop"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-bold hover:opacity-90 transition-opacity"
+                >
+                  START SHOPPING <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {userOrders.map((order) => {
+                  const badge = STATUS_BADGE[order.status];
+                  const StatusIcon = badge?.icon || Clock;
+                  return (
+                    <Link
+                      key={order.id}
+                      href={`/track?orderId=${order.id}`}
+                      className="block p-6 bg-card border border-border rounded-xl hover:border-primary transition-all"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0">
+                          <StatusIcon className="w-5 h-5 text-primary shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-bold">{order.orderNumber}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(order.createdAt).toLocaleDateString()} · {formatCurrency(order.total)}
+                              {order.isVIPOrder && <span className="ml-2 text-primary">VIP</span>}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${badge?.color || ""}`}>
+                          {order.status}
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </main>
